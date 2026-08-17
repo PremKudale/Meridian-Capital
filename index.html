@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Meridian Capital — Project Finance Modeling & Advisory Platform. Full DCF model for infrastructure investments with cash flow projections, debt waterfall structuring, sensitivity analysis, and Monte Carlo simulation.">
+    <meta name="keywords" content="project finance, infrastructure, financial model, solar, DCF, IRR, NPV, DSCR">
+    <meta name="author" content="InfraFin Pro">
+    <title>Meridian Capital — Project Finance Modeling & Advisory Platform</title>
+
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="css/index.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+    <link rel="stylesheet" href="css/sidebar.css">
+    <link rel="stylesheet" href="css/charts.css">
+
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay">
+        <div class="loading-spinner"></div>
+    </div>
+
+    <div class="app-layout">
+
+        <!-- ============================================ -->
+        <!-- SIDEBAR — Assumptions Panel                  -->
+        <!-- ============================================ -->
+        <aside id="sidebar" class="sidebar">
+            <div class="sidebar-header">
+                <h2>⚙️ Assumptions</h2>
+                <div class="sidebar-actions">
+                    <button id="btn-reset" class="btn btn-sm" title="Reset to defaults">↻ Reset</button>
+                </div>
+            </div>
+
+            <div class="sidebar-body">
+
+                <!-- Project Details -->
+                <div class="input-section">
+                    <div class="section-header">
+                        <h3><span class="section-icon">☀️</span> Project Details</h3>
+                        <span class="toggle-icon">▾</span>
+                    </div>
+                    <div class="section-body">
+                        <div class="input-group">
+                            <label>Capacity <span class="unit">MW</span></label>
+                            <input type="number" id="capacity" value="100" min="1" max="5000" step="10">
+                        </div>
+                        <div class="input-row">
+                            <div class="input-group">
+                                <label>Project Life <span class="unit">yrs</span></label>
+                                <input type="number" id="project-life" value="25" min="5" max="40" step="1">
+                            </div>
+                            <div class="input-group">
+                                <label>Construction <span class="unit">months</span></label>
+                                <input type="number" id="construction-months" value="18" min="6" max="48" step="3">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CAPEX -->
+                <div class="input-section">
+                    <div class="section-header">
+                        <h3><span class="section-icon">🏗️</span> Capital Expenditure</h3>
+                        <span class="toggle-icon">▾</span>
+                    </div>
+                    <div class="section-body">
+                        <div class="input-group">
+                            <label>CAPEX per MW <span class="unit">₹ Cr/MW</span></label>
+                            <input type="number" id="capex-per-mw" value="4.50" min="1" max="20" step="0.10">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Revenue -->
+                <div class="input-section">
+                    <div class="section-header">
+                        <h3><span class="section-icon">💰</span> Revenue</h3>
+                        <span class="toggle-icon">▾</span>
+                    </div>
+                    <div class="section-body">
+                        <div class="input-group">
+                            <label>Capacity Factor (CUF) <span class="unit">%</span></label>
+                            <input type="number" id="capacity-factor" value="22.00" min="10" max="40" step="0.5">
+                        </div>
+                        <div class="input-group">
+                            <label>Degradation Rate <span class="unit">%/yr</span></label>
+                            <input type="number" id="degradation-rate" value="0.50" min="0" max="2" step="0.1">
+                        </div>
+                        <div class="input-group">
+                            <label>PPA Tariff <span class="unit">₹/kWh</span></label>
+                            <input type="number" id="ppa-tariff" value="3.50" min="1" max="10" step="0.10">
+                        </div>
+                        <div class="input-row">
+                            <div class="input-group">
+                                <label>PPA Escalation <span class="unit">%</span></label>
+                                <input type="number" id="ppa-escalation" value="0.00" min="0" max="5" step="0.5">
+                            </div>
+                            <div class="input-group">
+                                <label>PPA Tenure <span class="unit">yrs</span></label>
+                                <input type="number" id="ppa-tenure" value="25" min="5" max="30" step="1">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Operating Expenses -->
+                <div class="input-section">
+                    <div class="section-header">
+                        <h3><span class="section-icon">🔧</span> Operating Expenses</h3>
+                        <span class="toggle-icon">▾</span>
+                    </div>
+                    <div class="section-body">
+                        <div class="input-group">
+                            <label>O&M Cost per MW <span class="unit">₹ L/MW/yr</span></label>
+                            <input type="number" id="om-cost" value="6.00" min="1" max="20" step="0.5">
+                        </div>
+                        <div class="input-row">
+                            <div class="input-group">
+                                <label>Insurance <span class="unit">% of CAPEX</span></label>
+                                <input type="number" id="insurance-pct" value="0.25" min="0" max="1" step="0.05">
+                            </div>
+                            <div class="input-group">
+                                <label>Land Lease <span class="unit">₹ L/MW/yr</span></label>
+                                <input type="number" id="land-lease" value="2.00" min="0.5" max="10" step="0.5">
+                            </div>
+                        </div>
+                        <div class="input-group">
+                            <label>Inflation Rate <span class="unit">%</span></label>
+                            <input type="number" id="inflation-rate" value="5.00" min="0" max="15" step="0.5">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Financing -->
+                <div class="input-section">
+                    <div class="section-header">
+                        <h3><span class="section-icon">🏦</span> Financing</h3>
+                        <span class="toggle-icon">▾</span>
+                    </div>
+                    <div class="section-body">
+                        <div class="input-group">
+                            <label>Debt Ratio (D:E) <span class="unit">%</span></label>
+                            <input type="number" id="debt-ratio" value="70.00" min="0" max="95" step="5">
+                        </div>
+                        <div class="input-row">
+                            <div class="input-group">
+                                <label>Interest Rate <span class="unit">%</span></label>
+                                <input type="number" id="interest-rate" value="9.50" min="4" max="18" step="0.25">
+                            </div>
+                            <div class="input-group">
+                                <label>Loan Tenor <span class="unit">yrs</span></label>
+                                <input type="number" id="loan-tenor" value="15" min="5" max="25" step="1">
+                            </div>
+                        </div>
+                        <div class="input-row">
+                            <div class="input-group">
+                                <label>DSRA <span class="unit">months</span></label>
+                                <input type="number" id="dsra-months" value="6" min="0" max="12" step="3">
+                            </div>
+                            <div class="input-group">
+                                <label>Repayment</label>
+                                <select id="repayment-type">
+                                    <option value="annuity">Annuity</option>
+                                    <option value="sculpted">Sculpted</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tax & Depreciation -->
+                <div class="input-section">
+                    <div class="section-header">
+                        <h3><span class="section-icon">📋</span> Tax & Depreciation</h3>
+                        <span class="toggle-icon">▾</span>
+                    </div>
+                    <div class="section-body">
+                        <div class="input-row">
+                            <div class="input-group">
+                                <label>Tax Rate <span class="unit">%</span></label>
+                                <input type="number" id="tax-rate" value="25.20" min="0" max="40" step="0.5">
+                            </div>
+                            <div class="input-group">
+                                <label>Discount Rate <span class="unit">%</span></label>
+                                <input type="number" id="discount-rate" value="10.00" min="5" max="20" step="0.5">
+                            </div>
+                        </div>
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="use-accel-dep" checked>
+                            <label for="use-accel-dep">Accelerated Depreciation (40%)</label>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="sidebar-footer no-print">
+                <button id="btn-export" class="btn" title="Export cash flows to CSV">📥 Export CSV</button>
+                <button id="btn-print" class="btn" title="Print executive summary">🖨️ Print</button>
+            </div>
+        </aside>
+
+        <!-- ============================================ -->
+        <!-- MAIN CONTENT                                 -->
+        <!-- ============================================ -->
+        <main class="main-content">
+
+            <!-- Header -->
+            <header class="app-header">
+                <div class="header-left">
+                    <button id="sidebar-toggle" class="no-print" aria-label="Toggle sidebar">☰</button>
+                    <div class="header-logo">
+                        <div class="logo-icon">MC</div>
+                        <div>
+                            <h1>Meridian Capital</h1>
+                            <div class="tagline">Project Finance Modeling & Advisory Platform</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="header-right no-print">
+                    <button id="btn-export-header" class="btn btn-sm" onclick="window.app && window.app.currentResults && (function(){import('./js/utils/export.js').then(m=>m.ExportUtils.exportToCSV(window.app.currentResults))})()">📥 CSV</button>
+                    <button id="btn-print-header" class="btn btn-sm" onclick="window.print()">🖨️ Print</button>
+                </div>
+            </header>
+
+            <!-- Error Container -->
+            <div id="error-container"></div>
+
+            <!-- KPI Summary Bar -->
+            <div class="kpi-bar">
+                <div class="kpi-card" id="kpi-card-eirr">
+                    <div class="kpi-label">Equity IRR</div>
+                    <div class="kpi-value" id="kpi-equity-irr">—</div>
+                    <div class="kpi-subtitle">Post-tax, leveraged</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Project IRR</div>
+                    <div class="kpi-value" id="kpi-project-irr">—</div>
+                    <div class="kpi-subtitle">Pre-leverage</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">NPV</div>
+                    <div class="kpi-value" id="kpi-npv">—</div>
+                    <div class="kpi-subtitle" id="kpi-total-capex">—</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">MOIC</div>
+                    <div class="kpi-value" id="kpi-moic">—</div>
+                    <div class="kpi-subtitle" id="kpi-equity-amount">—</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Payback Period</div>
+                    <div class="kpi-value" id="kpi-payback">—</div>
+                    <div class="kpi-subtitle">Simple payback</div>
+                </div>
+                <div class="kpi-card" id="kpi-card-dscr">
+                    <div class="kpi-label">Min DSCR</div>
+                    <div class="kpi-value" id="kpi-dscr">—</div>
+                    <div class="kpi-subtitle" id="kpi-debt-amount">—</div>
+                </div>
+            </div>
+
+            <!-- Project Info Bar -->
+            <div class="project-info-bar no-print">
+                <div class="project-info-item">
+                    <span>☀️</span>
+                    <span class="value" id="info-capacity">100 MW Solar</span>
+                </div>
+                <div class="project-info-item">
+                    <span>📅</span>
+                    <span class="value" id="info-life">25 years</span>
+                </div>
+                <div class="project-info-item">
+                    <span>⚡</span>
+                    <span class="value" id="info-cuf">22% CUF</span>
+                </div>
+                <div class="project-info-item">
+                    <span>💵</span>
+                    <span class="value" id="info-tariff">₹3.50/kWh</span>
+                </div>
+                <div class="project-info-item">
+                    <span>🏦</span>
+                    <span class="value" id="info-de">70:30 D:E</span>
+                </div>
+            </div>
+
+            <!-- Tab Navigation -->
+            <nav class="tab-nav no-print">
+                <button class="tab-btn active" data-tab="overview">
+                    <span class="tab-icon">📊</span> Overview
+                </button>
+                <button class="tab-btn" data-tab="cashflows">
+                    <span class="tab-icon">💹</span> Cash Flows
+                </button>
+                <button class="tab-btn" data-tab="debt">
+                    <span class="tab-icon">🏦</span> Debt Schedule
+                </button>
+                <button class="tab-btn" data-tab="sensitivity">
+                    <span class="tab-icon">🎯</span> Sensitivity
+                </button>
+                <button class="tab-btn" data-tab="scenarios">
+                    <span class="tab-icon">📋</span> Scenarios
+                </button>
+                <button class="tab-btn" data-tab="montecarlo">
+                    <span class="tab-icon">🎲</span> Monte Carlo
+                </button>
+                <button class="tab-btn" data-tab="summary">
+                    <span class="tab-icon">📝</span> Executive Summary
+                </button>
+            </nav>
+
+            <!-- Tab Content -->
+            <div class="tab-content">
+
+                <!-- ===== OVERVIEW TAB ===== -->
+                <div id="panel-overview" class="tab-panel active">
+                    <div class="chart-grid">
+                        <div class="chart-wrapper full-width tall">
+                            <canvas id="chart-revenue-ebitda"></canvas>
+                        </div>
+                        <div class="chart-wrapper">
+                            <canvas id="chart-cashflow-waterfall"></canvas>
+                        </div>
+                        <div class="chart-wrapper">
+                            <canvas id="chart-capex-breakdown"></canvas>
+                        </div>
+                        <div class="chart-wrapper">
+                            <canvas id="chart-cumulative-cf"></canvas>
+                        </div>
+                        <div class="chart-wrapper">
+                            <canvas id="chart-dscr"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ===== CASH FLOWS TAB ===== -->
+                <div id="panel-cashflows" class="tab-panel">
+                    <h3 class="section-title"><span class="icon">💹</span> Annual Cash Flow Statement <span class="text-sm muted">(₹ Lakhs)</span></h3>
+                    <div class="table-container">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Year</th>
+                                    <th>Energy (MWh)</th>
+                                    <th>Revenue</th>
+                                    <th>Total OPEX</th>
+                                    <th>EBITDA</th>
+                                    <th>Debt Service</th>
+                                    <th>Tax</th>
+                                    <th>FCFE</th>
+                                    <th>DSCR</th>
+                                    <th>Cum. FCFE</th>
+                                </tr>
+                            </thead>
+                            <tbody id="cashflow-tbody">
+                                <!-- Dynamically populated -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- ===== DEBT SCHEDULE TAB ===== -->
+                <div id="panel-debt" class="tab-panel">
+                    <h3 class="section-title"><span class="icon">🏦</span> Debt Service Profile</h3>
+                    <div class="chart-grid">
+                        <div class="chart-wrapper tall">
+                            <canvas id="chart-debt-profile"></canvas>
+                        </div>
+                        <div class="chart-wrapper tall">
+                            <canvas id="chart-dscr-debt"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ===== SENSITIVITY TAB ===== -->
+                <div id="panel-sensitivity" class="tab-panel">
+                    <div id="sensitivity-loading" class="analysis-loading">
+                        <div class="loading-spinner"></div>
+                        <p>Running sensitivity analysis across 10 variables...</p>
+                    </div>
+                    <div class="analysis-section">
+                        <h3 class="section-title"><span class="icon">🎯</span> Tornado Chart — Impact on Equity IRR (±20%)</h3>
+                        <div class="chart-wrapper extra-tall">
+                            <canvas id="chart-tornado"></canvas>
+                        </div>
+                    </div>
+                    <div class="analysis-section">
+                        <h3 class="section-title"><span class="icon">📊</span> Sensitivity Detail Table</h3>
+                        <div id="sensitivity-table"></div>
+                    </div>
+                </div>
+
+                <!-- ===== SCENARIOS TAB ===== -->
+                <div id="panel-scenarios" class="tab-panel">
+                    <h3 class="section-title"><span class="icon">📋</span> Scenario Analysis — Base / Bull / Bear / Stress</h3>
+                    <div id="scenario-comparison">
+                        <div class="chart-placeholder">
+                            <div class="placeholder-icon">📋</div>
+                            <p>Click the Scenarios tab to run scenario analysis</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ===== MONTE CARLO TAB ===== -->
+                <div id="panel-montecarlo" class="tab-panel">
+                    <div id="mc-loading" class="analysis-loading">
+                        <div class="loading-spinner"></div>
+                        <p>Running 1,000 Monte Carlo iterations... <span id="mc-progress">0%</span></p>
+                    </div>
+                    <div class="analysis-section">
+                        <h3 class="section-title"><span class="icon">🎲</span> Monte Carlo Simulation — Equity IRR Distribution</h3>
+                        <div class="chart-wrapper extra-tall">
+                            <canvas id="chart-montecarlo"></canvas>
+                        </div>
+                    </div>
+                    <div class="analysis-section">
+                        <h3 class="section-title"><span class="icon">📈</span> Statistical Summary & Probability Analysis</h3>
+                        <div id="mc-stats">
+                            <div class="chart-placeholder">
+                                <div class="placeholder-icon">🎲</div>
+                                <p>Click the Monte Carlo tab to run the simulation</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ===== EXECUTIVE SUMMARY TAB ===== -->
+                <div id="panel-summary" class="tab-panel">
+                    <div id="executive-summary-content">
+                        <div class="chart-placeholder">
+                            <div class="placeholder-icon">📝</div>
+                            <p>Click the Executive Summary tab to generate the investment memo</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- Application Script -->
+    <script type="module" src="js/app.js"></script>
+
+</body>
+</html>
